@@ -155,6 +155,8 @@ function axisTitleFor(unit: Unit): string | undefined {
 
 export interface SizeSpec {
   font: number
+  /** Legend labels are slightly larger than axis ticks so category names stay legible in cards. */
+  legendFont: number
   legendBox: number
   legendPadding: number
   /** Multiplies the tick budget — fullscreen earns roughly 2.5× the labels. */
@@ -165,8 +167,24 @@ export interface SizeSpec {
 
 export function sizeSpec(size: ChartSize): SizeSpec {
   return size === 'fullscreen'
-    ? { font: 13, legendBox: 16, legendPadding: 18, tickScale: 2.5, padding: 8, frameHeight: 'fill' }
-    : { font: 10, legendBox: 12, legendPadding: 12, tickScale: 1, padding: 2, frameHeight: 208 }
+    ? {
+        font: 13,
+        legendFont: 14,
+        legendBox: 18,
+        legendPadding: 20,
+        tickScale: 2.5,
+        padding: 8,
+        frameHeight: 'fill',
+      }
+    : {
+        font: 10,
+        legendFont: 12,
+        legendBox: 14,
+        legendPadding: 14,
+        tickScale: 1,
+        padding: 2,
+        frameHeight: 208,
+      }
 }
 
 // ---------------------------------------------------------------------------- base hook
@@ -326,12 +344,12 @@ export function legendConfig(
     labels: {
       color: tokens.textMuted,
       usePointStyle: true,
-      // Figma legend: 12px swatch, 2px radius, 8px gap, 10px label
+      // Swatch + label scaled via SizeSpec.legend* (slightly above axis tick size on cards).
       pointStyle: 'rectRounded' as const,
       boxWidth: size.legendBox,
       boxHeight: size.legendBox,
       padding: size.legendPadding,
-      font: { size: size.font },
+      font: { size: size.legendFont },
     },
   }
 }
