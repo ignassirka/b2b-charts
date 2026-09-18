@@ -6,7 +6,6 @@ import { BarStacked } from './charts/bar/BarStacked'
 import { BarTargetLine } from './charts/bar/BarTargetLine'
 import { BarThreshold } from './charts/bar/BarThreshold'
 import { DonutBasic } from './charts/donut/DonutBasic'
-import { DonutCentreKpi } from './charts/donut/DonutCentreKpi'
 import { DonutSortedOther } from './charts/donut/DonutSortedOther'
 import { DonutThickRing } from './charts/donut/DonutThickRing'
 import { DonutThinRing } from './charts/donut/DonutThinRing'
@@ -45,15 +44,6 @@ const VARIANTS: Record<ChartTabId, VariantSpec[]> = {
         'Trackers and ads outweigh the rest by an order of magnitude. Categorical, because no threat class is better than another — hue is identity only.',
       role: 'categorical',
       Chart: DonutBasic,
-    },
-    {
-      id: 'donut-kpi',
-      tab: 'donut',
-      title: 'Threats blocked, with total',
-      caption:
-        'The same split with the window total where the eye lands first. Still categorical: the number carries the verdict, not the colour.',
-      role: 'categorical',
-      Chart: DonutCentreKpi,
     },
     {
       id: 'donut-thin',
@@ -152,9 +142,9 @@ const VARIANTS: Record<ChartTabId, VariantSpec[]> = {
     {
       id: 'bar-horizontal',
       tab: 'bar',
-      title: 'Dedicated server utilisation by team',
+      title: 'Gateway utilisation by team',
       caption:
-        'Signal with banded levels — past 85% a team has no headroom left. Ranked rows with the number spelled out on the right.',
+        'Signal with banded levels — past 85% a team has no headroom left on its gateway. Ranked rows with the number spelled out on the right.',
       role: 'signal',
       Chart: BarHorizontalPercent,
       unsupported: {

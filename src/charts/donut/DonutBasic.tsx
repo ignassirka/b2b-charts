@@ -6,6 +6,7 @@ import { DonutBase } from './DonutBase'
 export function DonutBasic({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const { slices, unit } = threatShare(global.density)
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0)
 
   return (
     <DonutBase
@@ -15,6 +16,8 @@ export function DonutBasic({ cardIndex, size = 'card' }: ChartProps) {
       unit={unit}
       datasetLabel="Threats blocked"
       role="categorical"
+      spotlightValue={total}
+      spotlightLabel="threats blocked this window"
     />
   )
 }

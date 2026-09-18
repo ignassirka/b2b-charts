@@ -11,6 +11,7 @@ export function BarTargetLine({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const tokens = useThemeTokens()
   const { slices, unit } = uptimeVsSla(global.density)
+  const worst = Math.min(...slices.map((row) => row.value))
 
   return (
     <BarBase
@@ -31,6 +32,8 @@ export function BarTargetLine({ cardIndex, size = 'card' }: ChartProps) {
       stepSize={0.2}
       threshold={SLA_UPTIME_PCT}
       thicknessScale={1.6}
+      spotlightValue={worst}
+      spotlightLabel="lowest gateway uptime"
     />
   )
 }

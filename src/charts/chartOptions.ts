@@ -146,6 +146,16 @@ export function formatAxisValue(value: number, unit: Unit): string {
   }
 }
 
+/**
+ * The bare figure for a spotlight stat — full precision, but with a `count` unit's written label
+ * stripped, since the caption beside it states the unit in its own words instead. Percent, Gbps
+ * and ms keep their inline symbol; it reads fine on a number this size.
+ */
+export function spotlightNumber(value: number, unit: Unit): string {
+  const formatted = formatValue(value, unit)
+  return unit.format === 'count' ? formatted.replace(` ${unit.label}`, '') : formatted
+}
+
 /** Percent carries its symbol inline; every other unit is named once, on the axis. */
 function axisTitleFor(unit: Unit): string | undefined {
   return unit.format === 'percent' ? undefined : unit.label

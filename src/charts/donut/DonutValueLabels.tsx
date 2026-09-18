@@ -13,6 +13,8 @@ function seatLevel(slice: Slice): SignalLevel {
 export function DonutValueLabels({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const { slices, unit } = seatUtilisation(global.density)
+  // The number that matters here is what's actually working for its money, not the total pool.
+  const inUse = slices.find((slice) => slice.label === 'In use')?.value ?? 0
 
   return (
     <DonutBase
@@ -25,6 +27,8 @@ export function DonutValueLabels({ cardIndex, size = 'card' }: ChartProps) {
       levelAt={seatLevel}
       forceLabels="outside"
       allowGrouping={false}
+      spotlightValue={inUse}
+      spotlightLabel="seats in use right now"
     />
   )
 }

@@ -8,6 +8,8 @@ export function LineSingleNeutral({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const tokens = useThemeTokens()
   const set = activeConnections(global.density)
+  const values = set.series[0].values
+  const latest = values[values.length - 1] ?? 0
 
   return (
     <LineBase
@@ -25,6 +27,8 @@ export function LineSingleNeutral({ cardIndex, size = 'card' }: ChartProps) {
       unit={set.unit}
       axisMax={set.axisMax}
       stepSize={set.stepSize}
+      spotlightValue={latest}
+      spotlightLabel="tunnels active right now"
     />
   )
 }

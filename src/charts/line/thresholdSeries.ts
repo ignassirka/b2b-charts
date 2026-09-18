@@ -58,5 +58,6 @@ export function useGatewayLoadSeries() {
     stepSize: set.stepSize,
     threshold,
     endDotColor: signalColor(breaching ? 'bad' : 'good', tokens),
+    latest: values[values.length - 1],
   }
 }

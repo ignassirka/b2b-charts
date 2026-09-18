@@ -18,6 +18,8 @@ export function LineSparkline({ cardIndex, size = 'card' }: ChartProps) {
       threshold={load.threshold}
       compact={size === 'card'}
       endDot={{ color: load.endDotColor }}
+      spotlightValue={load.latest}
+      spotlightLabel="current gateway load"
     />
   )
 }

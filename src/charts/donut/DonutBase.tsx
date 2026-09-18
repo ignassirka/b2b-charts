@@ -6,6 +6,7 @@ import { usePublishChart } from '../../components/VariantCard'
 import type { Slice, Unit } from '../../data/mockData'
 import type { SeriesState } from '../../theme/useThemeTokens'
 import { ChartFrame, useChartHover } from '../ChartFrame'
+import { SpotlightStat } from '../SpotlightStat'
 import {
   UPDATE_MODE,
   restyleTransition,
@@ -16,6 +17,7 @@ import {
   legendConfig,
   signalColor,
   sizeSpec,
+  spotlightNumber,
   useChartBase,
   useChartInstance,
   warnOnMixedPalette,
@@ -37,12 +39,14 @@ export interface DonutBaseProps {
   role: PaletteRole
   /** Required for the signal role: maps each slice to its health reading. */
   levelAt?: (slice: Slice, index: number) => SignalLevel
-  /** Turns on the centre KPI with this caption under the figure. */
-  centreLabel?: string
   /** Overrides the shared value-label control for variants that exist to demonstrate it. */
   forceLabels?: DonutLabels
   /** Variants with too few categories cannot fold a tail. */
   allowGrouping?: boolean
+  /** The headline figure shown above the ring when the "Spotlight number" control is on. */
+  spotlightValue?: number
+  /** Short caption beside the spotlight figure — states what it is and its unit. */
+  spotlightLabel?: string
 }
 
 /** Shared doughnut shell. Every donut variant is this plus a couple of props. */
@@ -54,9 +58,10 @@ export function DonutBase({
   datasetLabel,
   role,
   levelAt,
-  centreLabel,
   forceLabels,
   allowGrouping = true,
+  spotlightValue,
+  spotlightLabel,
 }: DonutBaseProps) {
   const { global, tokens, motion } = useChartBase(cardIndex)
   const { donut } = useControls()
@@ -139,17 +144,6 @@ export function DonutBase({
       onHover,
       plugins: {
         legend: legendConfig(global, tokens, spec, display.length),
-        centerText: {
-          enabled: Boolean(centreLabel),
-          value: formatValue(
-            display.reduce((sum, slice) => sum + slice.value, 0),
-            unit,
-          ).replace(` ${unit.label}`, ''),
-          label: centreLabel ?? '',
-          valueColor: tokens.textStrong,
-          labelColor: tokens.textMuted,
-          font: spec.font + 1,
-        },
         arcValueLabels: {
           enabled: labelMode !== 'off',
           values: shares,
@@ -160,7 +154,7 @@ export function DonutBase({
         },
       },
     }),
-    [donut.cutout, donut.startAngle, labelMode, spec, motion, onHover, global, tokens, centreLabel, display, unit, shares],
+    [donut.cutout, donut.startAngle, labelMode, spec, motion, onHover, global, tokens, display, unit, shares],
   )
 
   usePublishChart(
@@ -171,8 +165,13 @@ export function DonutBase({
   )
 
   return (
-    <ChartFrame hover={hover} handlers={frameHandlers} height={size === 'fullscreen' ? 'fill' : 220}>
-      <Doughnut ref={attachChart} data={data} options={options} updateMode={UPDATE_MODE} />
-    </ChartFrame>
+    <div className="flex w-full flex-1 flex-col">
+      {global.spotlight && spotlightValue !== undefined && spotlightLabel && (
+        <SpotlightStat value={spotlightNumber(spotlightValue, unit)} label={spotlightLabel} size={size} />
+      )}
+      <ChartFrame hover={hover} handlers={frameHandlers} height={size === 'fullscreen' ? 'fill' : 220}>
+        <Doughnut ref={attachChart} data={data} options={options} updateMode={UPDATE_MODE} />
+      </ChartFrame>
+    </div>
   )
 }

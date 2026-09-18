@@ -1,18 +1,20 @@
 import type { Chart, ChartType, LineElement, Plugin } from 'chart.js'
+import { drawGatewayIcon } from './canvasIcons'
 
 export interface CrosshairOptions {
   enabled: boolean
   color: string
 }
 
-export interface CenterTextOptions {
+export interface GatewayCategoryLabelOptions {
   enabled: boolean
-  value: string
-  label: string
-  valueColor: string
-  labelColor: string
-  /** Base label size; the KPI figure is drawn at 2.4× this. */
+  /** One entry per category tick, in axis order. */
+  labels: string[]
+  color: string
   font: number
+  iconWidth: number
+  /** Gap between the icon and the label text. */
+  gap: number
 }
 
 export interface ArcValueLabelOptions {
@@ -38,7 +40,7 @@ declare module 'chart.js' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface PluginOptionsByType<TType extends ChartType> {
     crosshair?: CrosshairOptions
-    centerText?: CenterTextOptions
+    gatewayCategoryLabels?: GatewayCategoryLabelOptions
     arcValueLabels?: ArcValueLabelOptions
     edgeValueLabels?: EdgeValueLabelOptions
     barValueLabels?: BarValueLabelOptions
@@ -69,26 +71,35 @@ export const crosshairPlugin: Plugin = {
   },
 }
 
-/** Big number + caption in the doughnut hole, centred on the ring rather than the canvas. */
-export const centerTextPlugin: Plugin = {
-  id: 'centerText',
-  afterDatasetsDraw(chart, _args, opts) {
-    const options = opts as unknown as CenterTextOptions | undefined
+/**
+ * Draws a gateway glyph + label pair at each category tick, replacing the axis's default tick
+ * text — used by the one variant that names its rows after gateways. That axis must set
+ * `ticks.display: false` and reserve its own width via a scale-level `afterFit` callback
+ * (Chart.js has no chart-wide plugin hook for scale fitting; only the scale's own
+ * `CoreScaleOptions.afterFit` option runs at that point).
+ */
+export const gatewayCategoryLabelsPlugin: Plugin = {
+  id: 'gatewayCategoryLabels',
+  afterDraw(chart, _args, opts) {
+    const options = opts as unknown as GatewayCategoryLabelOptions | undefined
     if (!options?.enabled) return
-    const arc = chart.getDatasetMeta(0).data[0] as { x?: number; y?: number } | undefined
-    if (!arc || arc.x === undefined || arc.y === undefined) return
+    const scale = chart.scales.y
+    if (!scale) return
 
     const { ctx } = chart
-    const value = Math.round(options.font * 2.4)
     ctx.save()
-    ctx.textAlign = 'center'
+    ctx.font = `500 ${options.font}px ${FONT_STACK}`
+    ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
-    ctx.fillStyle = options.valueColor
-    ctx.font = `600 ${value}px ${FONT_STACK}`
-    ctx.fillText(options.value, arc.x, arc.y - value * 0.3)
-    ctx.fillStyle = options.labelColor
-    ctx.font = `400 ${options.font}px ${FONT_STACK}`
-    ctx.fillText(options.label, arc.x, arc.y + value * 0.5)
+
+    chart.getDatasetMeta(0).data.forEach((element, index) => {
+      const label = options.labels[index]
+      if (!label) return
+      const y = (element as unknown as { y: number }).y
+      drawGatewayIcon(ctx, scale.left, y, options.iconWidth)
+      ctx.fillStyle = options.color
+      ctx.fillText(label, scale.left + options.iconWidth + options.gap, y)
+    })
     ctx.restore()
   },
 }
@@ -254,7 +265,7 @@ export const areaFadePlugin: Plugin = {
 
 export const customPlugins = [
   crosshairPlugin,
-  centerTextPlugin,
+  gatewayCategoryLabelsPlugin,
   arcValueLabelPlugin,
   edgeValueLabelPlugin,
   barValueLabelPlugin,

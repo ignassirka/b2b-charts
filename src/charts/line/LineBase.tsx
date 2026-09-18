@@ -13,6 +13,7 @@ import { DIM_OPACITY } from '../../theme/tokens'
 import type { SeriesState } from '../../theme/useThemeTokens'
 import { ChartFrame, useChartHover } from '../ChartFrame'
 import { setAreaAlpha } from '../plugins'
+import { SpotlightStat } from '../SpotlightStat'
 import {
   TRANSITION_MS,
   UPDATE_MODE,
@@ -26,6 +27,7 @@ import {
   lineTension,
   pointRadiusScriptable,
   sizeSpec,
+  spotlightNumber,
   thresholdAnnotation,
   useChartBase,
   useChartInstance,
@@ -65,6 +67,11 @@ export interface LineBaseProps {
   /** Strips axes and legend and shrinks the frame. */
   compact?: boolean
   endDot?: { color: string }
+  /** The headline figure shown above the plot when the "Spotlight number" control is on.
+   *  Never shown in `compact` mode — there is no room for it beside the sparkline. */
+  spotlightValue?: number
+  /** Short caption beside the spotlight figure — states what it is and its unit. */
+  spotlightLabel?: string
 }
 
 export function LineBase({
@@ -82,6 +89,8 @@ export function LineBase({
   forceStepped = false,
   compact = false,
   endDot,
+  spotlightValue,
+  spotlightLabel,
 }: LineBaseProps) {
   const { global, tokens, motion } = useChartBase(cardIndex)
   const { line } = useControls()
@@ -223,8 +232,13 @@ export function LineBase({
 
   const height = size === 'fullscreen' ? 'fill' : compact ? 96 : 208
   return (
-    <ChartFrame hover={hover} handlers={frameHandlers} height={height}>
-      <Line ref={attachChart} data={data} options={options} updateMode={UPDATE_MODE} />
-    </ChartFrame>
+    <div className="flex w-full flex-1 flex-col">
+      {!compact && global.spotlight && spotlightValue !== undefined && spotlightLabel && (
+        <SpotlightStat value={spotlightNumber(spotlightValue, unit)} label={spotlightLabel} size={size} />
+      )}
+      <ChartFrame hover={hover} handlers={frameHandlers} height={height}>
+        <Line ref={attachChart} data={data} options={options} updateMode={UPDATE_MODE} />
+      </ChartFrame>
+    </div>
   )
 }

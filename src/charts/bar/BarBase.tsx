@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { Bar } from 'react-chartjs-2'
-import type { Chart as ChartJS, ChartOptions } from 'chart.js'
+import type { Chart as ChartJS, ChartOptions, Scale } from 'chart.js'
 import { useControls } from '../../components/ControlPanel'
 import { usePublishChart } from '../../components/VariantCard'
 import type { Unit } from '../../data/mockData'
 import type { SeriesState } from '../../theme/useThemeTokens'
 import { ChartFrame, useChartHover } from '../ChartFrame'
+import { SpotlightStat } from '../SpotlightStat'
 import {
   UPDATE_MODE,
   restyleTransition,
@@ -17,6 +18,7 @@ import {
   legendConfig,
   pointInteraction,
   sizeSpec,
+  spotlightNumber,
   thresholdAnnotation,
   useChartBase,
   useChartInstance,
@@ -59,6 +61,12 @@ export interface BarBaseProps {
   thicknessScale?: number
   /** Right-aligned value column, for ranked horizontal rows. */
   edgeLabelColors?: string[]
+  /** Replaces the category axis's text ticks with a gateway glyph + label pair (horizontal only). */
+  gatewayIcons?: boolean
+  /** The headline figure shown above the plot when the "Spotlight number" control is on. */
+  spotlightValue?: number
+  /** Short caption beside the spotlight figure — states what it is and its unit. */
+  spotlightLabel?: string
 }
 
 export function BarBase({
@@ -76,6 +84,9 @@ export function BarBase({
   forceStacked = false,
   thicknessScale = 1,
   edgeLabelColors,
+  gatewayIcons = false,
+  spotlightValue,
+  spotlightLabel,
 }: BarBaseProps) {
   const { global, tokens, motion } = useChartBase(cardIndex)
   const { bar } = useControls()
@@ -138,6 +149,9 @@ export function BarBase({
     const valueSide = horizontal ? 'x' : 'y'
     const categorySide = horizontal ? 'y' : 'x'
     const showEdge = Boolean(edgeLabelColors)
+    const showGatewayIcons = gatewayIcons && global.axisLabels
+    const iconWidth = Math.round(spec.font * 1.9)
+    const iconGap = 6
     return {
       indexAxis: horizontal ? ('y' as const) : ('x' as const),
       layout: { padding: { right: showEdge ? spec.font * 4.6 : 0 } },
@@ -161,12 +175,39 @@ export function BarBase({
             maxTicksLimit: horizontal ? 12 : 6,
           }),
           stacked,
+          ...(showGatewayIcons
+            ? {
+                ticks: { display: false },
+                // Chart.js has no chart-wide plugin hook for scale fitting — only the scale's
+                // own `afterFit` option runs at that point, so the reserved width is set here
+                // rather than in the plugin that draws into it.
+                afterFit: (axis: Scale) => {
+                  const { ctx } = axis.chart
+                  ctx.save()
+                  ctx.font = `500 ${spec.font}px Inter, system-ui, sans-serif`
+                  const maxTextWidth = labels.reduce(
+                    (max, label) => Math.max(max, ctx.measureText(label).width),
+                    0,
+                  )
+                  ctx.restore()
+                  axis.width = iconWidth + iconGap + maxTextWidth + 14
+                },
+              }
+            : {}),
         },
       },
       plugins: {
         legend: legendConfig(global, tokens, spec, series.length),
         annotation: thresholdAnnotation(valueSide, threshold, tokens),
         zoom: zoomConfig(size, tokens, zoom.report),
+        gatewayCategoryLabels: {
+          enabled: showGatewayIcons,
+          labels,
+          color: tokens.textMuted,
+          font: spec.font,
+          iconWidth,
+          gap: iconGap,
+        },
         barValueLabels: {
           enabled: bar.valueLabels,
           // A stack only has room for one number: its total, at the cap.
@@ -195,7 +236,7 @@ export function BarBase({
       },
     }
   }, [
-    horizontal, edgeLabelColors, spec, motion, labels, tickLabels, onHover, global,
+    horizontal, edgeLabelColors, gatewayIcons, spec, motion, labels, tickLabels, onHover, global,
     tokens, unit, axisMax, axisMin, stepSize, stacked, threshold, size, series, bar.valueLabels, zoom.window, zoom.report,
   ])
 
@@ -213,8 +254,13 @@ export function BarBase({
   )
 
   return (
-    <ChartFrame hover={hover} handlers={frameHandlers} height={size === 'fullscreen' ? 'fill' : 208}>
-      <Bar ref={attachChart} data={data} options={options} updateMode={UPDATE_MODE} />
-    </ChartFrame>
+    <div className="flex w-full flex-1 flex-col">
+      {global.spotlight && spotlightValue !== undefined && spotlightLabel && (
+        <SpotlightStat value={spotlightNumber(spotlightValue, unit)} label={spotlightLabel} size={size} />
+      )}
+      <ChartFrame hover={hover} handlers={frameHandlers} height={size === 'fullscreen' ? 'fill' : 208}>
+        <Bar ref={attachChart} data={data} options={options} updateMode={UPDATE_MODE} />
+      </ChartFrame>
+    </div>
   )
 }

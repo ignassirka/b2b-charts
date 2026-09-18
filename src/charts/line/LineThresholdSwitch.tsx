@@ -16,6 +16,8 @@ export function LineThresholdSwitch({ cardIndex, size = 'card' }: ChartProps) {
       axisMax={load.axisMax}
       stepSize={load.stepSize}
       threshold={load.threshold}
+      spotlightValue={load.latest}
+      spotlightLabel="current gateway load"
     />
   )
 }

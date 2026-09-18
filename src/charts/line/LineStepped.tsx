@@ -18,6 +18,7 @@ export function LineStepped({ cardIndex, size = 'card' }: ChartProps) {
   const tokens = useThemeTokens()
   const set = gatewaysOnline(global.density)
   const values = set.series[0].values
+  const latest = values[values.length - 1] ?? 0
 
   const segment = useMemo(
     () => (ctx: ScriptableLineSegmentContext) =>
@@ -45,6 +46,8 @@ export function LineStepped({ cardIndex, size = 'card' }: ChartProps) {
       stepSize={set.stepSize}
       threshold={REDUNDANCY_FLOOR}
       forceStepped
+      spotlightValue={latest}
+      spotlightLabel="gateways online right now"
     />
   )
 }

@@ -6,6 +6,7 @@ import { DonutBase } from './DonutBase'
 export function DonutThinRing({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const { slices, unit } = devicesByPlatform(global.density)
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0)
 
   return (
     <DonutBase
@@ -15,6 +16,8 @@ export function DonutThinRing({ cardIndex, size = 'card' }: ChartProps) {
       unit={unit}
       datasetLabel="Enrolled devices"
       role="categorical"
+      spotlightValue={total}
+      spotlightLabel="devices enrolled"
     />
   )
 }

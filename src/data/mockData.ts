@@ -465,12 +465,12 @@ export function connectionsByGateway(density: Density): CategorySet {
 const TEAMS = ['DEV', 'INFRA', 'MRKT', 'FIN', 'OPS'] as const
 const TEAM_USAGE = [87, 64, 38, 29, 21]
 
-/** % utilisation of each team's dedicated server. */
-export function dedicatedServerUsage(density: Density): CategorySet {
+/** % utilisation of each team's dedicated VPN gateway. */
+export function gatewayUtilisationByTeam(density: Density): CategorySet {
   const bias = windowBias(density)
   return {
     slices: TEAMS.map((team, i) => ({
-      label: `${team}-DS`,
+      label: `${team}-VPN`,
       value: Math.round(Math.min(99, TEAM_USAGE[i] * bias + jitter(0xd501, i, 4))),
     })),
     unit: UNITS.percent,

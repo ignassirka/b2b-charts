@@ -8,6 +8,7 @@ export function LineMultiSeries({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const tokens = useThemeTokens()
   const set = connectionsByRegion(global.density)
+  const latestTotal = set.series.reduce((sum, entry) => sum + entry.values[entry.values.length - 1], 0)
 
   return (
     <LineBase
@@ -23,6 +24,8 @@ export function LineMultiSeries({ cardIndex, size = 'card' }: ChartProps) {
       unit={set.unit}
       axisMax={set.axisMax}
       stepSize={set.stepSize}
+      spotlightValue={latestTotal}
+      spotlightLabel="tunnels active across all regions"
     />
   )
 }

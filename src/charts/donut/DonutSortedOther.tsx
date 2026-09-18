@@ -7,6 +7,7 @@ import { DonutBase } from './DonutBase'
 export function DonutSortedOther({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const { slices, unit } = connectionsByGateway(global.density)
+  const total = slices.reduce((sum, slice) => sum + slice.value, 0)
 
   return (
     <DonutBase
@@ -16,6 +17,8 @@ export function DonutSortedOther({ cardIndex, size = 'card' }: ChartProps) {
       unit={unit}
       datasetLabel="Tunnels per gateway"
       role="categorical"
+      spotlightValue={total}
+      spotlightLabel="tunnels across the fleet"
     />
   )
 }

@@ -8,6 +8,7 @@ export function BarStacked({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const tokens = useThemeTokens()
   const set = threatsByCategory(global.density)
+  const total = set.series.reduce((sum, entry) => sum + entry.values.reduce((a, b) => a + b, 0), 0)
 
   return (
     <BarBase
@@ -25,6 +26,8 @@ export function BarStacked({ cardIndex, size = 'card' }: ChartProps) {
       stepSize={set.stepSize}
       forceStacked
       thicknessScale={0.8}
+      spotlightValue={total}
+      spotlightLabel="threats blocked this window"
     />
   )
 }

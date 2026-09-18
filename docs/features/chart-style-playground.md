@@ -3,7 +3,7 @@
 ## Purpose
 
 Define the visual language for charts in the B2B VPN admin product. A styling exploration, not a
-product surface: no backend, no auth, no data fetching. Eighteen variants render side by side under
+product surface: no backend, no auth, no data fetching. Seventeen variants render side by side under
 one set of global controls, each carrying realistic VPN telemetry so the styling is judged against
 the shapes it will actually have to describe.
 
@@ -24,6 +24,11 @@ the shapes it will actually have to describe.
 5. Press the expand button — always visible in the card header, not just on hover — to open the
    chart fullscreen: larger type, denser ticks, markers on, x-axis zoom, a table of the underlying
    values, and the contextual controls scoped to that variant.
+6. Turn on **Spotlight number** (Global section) to show one large headline figure above the plot
+   on every variant — the total, latest reading, peak, or worst case, whichever best answers "what
+   is this chart about" for that scenario — with a short caption underneath stating its unit. Off
+   by default; applies on the card and in the fullscreen inspector alike. Hidden on the compact
+   sparkline card (no room), but shown once that same variant is expanded.
 
 ## Data Model
 
@@ -55,9 +60,9 @@ so tooltips keep the full label.
 | --- | --- | --- | --- |
 | `activeConnections` | `TimeSeriesSet` | tunnels | Line: single series |
 | `connectionsByRegion` | EU / US / APAC | tunnels | Line: three series |
-| `threatsBlocked` | total rate over time | threats/day | Axis ceilings, donut KPI total |
+| `threatsBlocked` | total rate over time | threats/day | Axis ceilings |
 | `threatsByCategory` | trackers, ads, malware, phishing, cryptominers | threats/day | Bar: stacked |
-| `threatShare` | window totals per category | threats/day | Donut: basic, centre KPI |
+| `threatShare` | window totals per category | threats/day | Donut: basic |
 | `gatewayLoad` | peak CPU load | % | Bar: threshold; Line: threshold + sparkline |
 | `throughput` | egress over time | Gbps | Line: area |
 | `gatewaysOnline` | integer count, floor 4 | gateways | Line: stepped |
@@ -67,7 +72,7 @@ so tooltips keep the full label.
 | `uptimeVsSla` | uptime per gateway vs `SLA_UPTIME_PCT` | % | Bar: target line |
 | `throughputByGateway` | ingress / egress per gateway | Gbps | Bar: grouped |
 | `connectionsByGateway` | tunnels per gateway, ranked | tunnels | Donut: sorted with Other |
-| `dedicatedServerUsage` | % per team (DEV / INFRA / MRKT / FIN / OPS) | % | Bar: horizontal |
+| `gatewayUtilisationByTeam` | % per team's dedicated gateway (DEV-VPN / INFRA-VPN / MRKT-VPN / FIN-VPN / OPS-VPN) | % | Bar: horizontal |
 | `devicesByPlatform` | Windows / macOS / iOS / Android / Linux | devices | Donut: devices by platform |
 | `trafficByProtocol` | WireGuard / OpenVPN / IKEv2 | % | Donut: tunnel traffic by protocol |
 | `seatUtilisation` | in use / idle / unassigned | licences | Donut: outside labels |
@@ -78,9 +83,11 @@ Constants: `GATEWAY_CAPACITY_LOAD_PCT` (85), `SLA_UPTIME_PCT` (99.9), `REDUNDANC
 
 | Component | Path | Notes |
 | --- | --- | --- |
-| `App` | `src/App.tsx` | Providers, top bar, tab state, the 18-entry variant registry |
+| `App` | `src/App.tsx` | Providers, top bar, tab state, the 17-entry variant registry |
 | `Tabs` | `src/components/Tabs.tsx` | Generic tablist, optional per-tab icon |
 | `DonutIcon`, `BarIcon`, `LineIcon`, `FoundationsIcon`, `WidgetIcon` | `src/components/icons.tsx` | Inline SVG glyphs, no icon-library dependency; one per chart family plus Foundations; `WidgetIcon` is the fixed gradient brand mark on every widget title |
+| `SpotlightStat` | `src/charts/SpotlightStat.tsx` | The large headline figure + caption rendered above the plot by all three shells when Spotlight is on |
+| `drawGatewayIcon` | `src/charts/canvasIcons.ts` | Canvas-drawn (not DOM) gateway rack-unit glyph, for axis ticks where an `<svg>` isn't an option |
 | `VariantCard` | `src/components/VariantCard.tsx` | Card chrome, always-visible expand button, chart sink, series table |
 | `ChartModal`, `useChartExpand` | `src/components/ChartModal.tsx` | Portalled dialog, focus trap, Esc, scroll lock, grow-from-card transition |
 | `ControlPanel` | `src/components/ControlPanel.tsx` | Rail ≥1280px / drawer below; owns `ControlsProvider`, `useControls` and `TabSettings` |
@@ -89,7 +96,7 @@ Constants: `GATEWAY_CAPACITY_LOAD_PCT` (85), `SLA_UPTIME_PCT` (99.9), `REDUNDANC
 | `DonutBase` / `BarBase` / `LineBase` | `src/charts/{donut,bar,line}/` | The three shared shells; every variant is one of these plus props |
 | `useGatewayLoadSeries` | `src/charts/line/thresholdSeries.ts` | One series feeding both threshold variants |
 
-Each of the 18 variant components is 15–50 lines. All shared option building lives in
+Each of the 17 variant components is 15–50 lines. All shared option building lives in
 `src/charts/chartOptions.ts` and the three shells.
 
 ### Variants and palette roles
@@ -97,7 +104,6 @@ Each of the 18 variant components is 15–50 lines. All shared option building l
 | Tab | Variant | Dataset | Role |
 | --- | --- | --- | --- |
 | Donut | Threats blocked by category | `threatShare` | categorical |
-| Donut | Threats blocked, with total | `threatShare` | categorical |
 | Donut | Devices by platform | `devicesByPlatform` | categorical |
 | Donut | Tunnel traffic by protocol | `trafficByProtocol` | categorical |
 | Donut | Tunnels per gateway (sorted, Other) | `connectionsByGateway` | categorical |
@@ -106,7 +112,7 @@ Each of the 18 variant components is 15–50 lines. All shared option building l
 | Bar | Threats blocked by category, per day | `threatsByCategory` | categorical |
 | Bar | Throughput in / out per gateway | `throughputByGateway` | categorical |
 | Bar | Peak gateway CPU load | `gatewayLoad` | signal |
-| Bar | Dedicated server utilisation by team | `dedicatedServerUsage` | signal |
+| Bar | Gateway utilisation by team | `gatewayUtilisationByTeam` | signal |
 | Bar | Gateway uptime vs 99.9% SLA | `uptimeVsSla` | signal |
 | Line | Active VPN tunnels | `activeConnections` | categorical |
 | Line | Tunnels by region | `connectionsByRegion` | categorical |
@@ -121,12 +127,52 @@ longer a visible "categorical"/"signal" badge, and the role is legible only from
 behaviour itself — `VariantSpec.caption` still holds the explanatory text in the registry, but it is
 no longer rendered anywhere in the UI.
 
+**Removed:** "Threats blocked, with total" (`DonutCentreKpi`, the donut with a KPI drawn in the
+ring's centre) was dropped once Spotlight number shipped — it duplicated the same total that
+Spotlight now shows above every donut, so the centre-KPI treatment had nothing left to demonstrate.
+Its `centerText` Chart.js plugin and the `centreLabel` prop on `DonutBase` were removed with it.
+
+### Spotlight values
+
+Each variant supplies its own `spotlightValue` (a raw number) and `spotlightLabel` (a short
+caption) to its shell — there is no single formula, because "the meaningful number" means something
+different per scenario (a total, a latest reading, a peak, a worst case). The shell formats the
+number with `spotlightNumber()` (strips a `count` unit's written label; percent/Gbps/ms keep their
+inline symbol) and renders nothing until the raw value is defined.
+
+| Tab | Variant | Spotlight figure | Caption |
+| --- | --- | --- | --- |
+| Donut | Threats blocked by category | Sum of all slices | threats blocked this window |
+| Donut | Devices by platform | Sum of all slices | devices enrolled |
+| Donut | Tunnel traffic by protocol | Leading protocol's share (shares always sum to 100%, so the total isn't the story) | share carried by `<protocol>` |
+| Donut | Tunnels per gateway | Sum of all slices | tunnels across the fleet |
+| Donut | Licence seat utilisation | The "In use" slice only | seats in use right now |
+| Bar | Failed authentications per day | Sum across the window | failed attempts this window |
+| Bar | Threats blocked by category, per day | Grand total across every category and day | threats blocked this window |
+| Bar | Throughput in / out per gateway | Ingress + egress summed across every gateway | Gbps ingress + egress combined |
+| Bar | Peak gateway CPU load | Highest bar (worst gateway) | peak gateway load |
+| Bar | Gateway utilisation by team | Highest bar (worst team) | highest team utilisation |
+| Bar | Gateway uptime vs 99.9% SLA | Lowest bar (closest to breach) | lowest gateway uptime |
+| Line | Active VPN tunnels | Latest point | tunnels active right now |
+| Line | Tunnels by region | Sum of each series' latest point | tunnels active across all regions |
+| Line | Egress throughput | Latest point | Gbps egress right now |
+| Line | Gateway CPU load vs capacity | Latest point (`useGatewayLoadSeries().latest`) | current gateway load |
+| Line | Gateway CPU load, inline | Same latest point as the full chart | current gateway load (card: hidden, no room; fullscreen: shown) |
+| Line | Gateways online vs redundancy floor | Latest point | gateways online right now |
+
 ### Custom Chart.js plugins
 
-`src/charts/plugins.ts`: `crosshair`, `centerText` (donut KPI), `arcValueLabels` (inside or outside
-the ring), `edgeValueLabels` (right-aligned % column), `barValueLabels` (values at bar ends, with
-collision skipping), `areaFade` (gradient fill drawn outside the Filler so its opacity can ramp
-after the line finishes drawing).
+`src/charts/plugins.ts`: `crosshair`, `arcValueLabels` (inside or outside the ring),
+`edgeValueLabels` (right-aligned % column), `barValueLabels` (values at bar ends, with collision
+skipping), `areaFade` (gradient fill drawn outside the Filler so its opacity can ramp after the line
+finishes drawing), `gatewayCategoryLabels` (draws `drawGatewayIcon()` + the row's label in place of
+the category axis's default tick text — used only by "Gateway utilisation by team").
+
+That axis pairs the plugin with `ticks.display: false` and a scale-level `afterFit` callback that
+reserves the axis's width via `ctx.measureText`. Chart.js has no chart-wide plugin hook for scale
+fitting — only the scale's own `CoreScaleOptions.afterFit` option runs at that point — so the width
+reservation lives on the axis config in `BarBase` (gated by a `gatewayIcons` prop) rather than in
+the plugin itself.
 
 ## Routes
 
@@ -139,7 +185,7 @@ Two React contexts, no state library.
 - `ThemeProvider` (`src/theme/useThemeTokens.ts`) — `theme`, `setTheme`, resolved `tokens`.
 - `ControlsProvider` (`src/components/ControlPanel.tsx`) — four independent slices so per-tab
   settings survive tab switches:
-  - `global`: `gridlines`, `axisLabels`, `legend`, `density`, `replayToken`
+  - `global`: `gridlines`, `axisLabels`, `legend`, `density`, `replayToken`, `spotlight`
   - `donut`: `cutout`, `startAngle`, `order`, `groupTail`, `topN`, `valueLabels` — `cutout` applies
     identically to every donut variant; no variant offsets it, so the ring thickness is always the
     same across the tab
@@ -165,6 +211,7 @@ range in React state and fed back through the axis config, because react-chartjs
 | --- | --- | --- |
 | Theme change | Rail (Global section) | `data-theme` flips; every chart recolours in 150ms with no entry replay |
 | Global control change | Rail, Global section | Applies to every visible chart on every tab; the legend position/off control has no effect on a chart with one series or slice — its legend never renders regardless of setting |
+| Spotlight toggle | Rail, Global section | Every variant with a `spotlightValue` shows/hides its headline figure, on the card and in the fullscreen inspector; the compact sparkline card is the one exception |
 | Tab change | Tab bar | Contextual section cross-fades (150ms) to that tab's settings; values are retained per tab |
 | Tab control change | Rail, `[Tab] settings` | Applies only to that family's variants |
 | Threshold drag | Capacity threshold slider | Bar fills re-evaluate; the line's `segment.borderColor` moves the switch point, including mid-segment |

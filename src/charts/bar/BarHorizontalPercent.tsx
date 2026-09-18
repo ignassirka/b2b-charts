@@ -1,10 +1,10 @@
 import { useControls } from '../../components/ControlPanel'
-import { dedicatedServerUsage } from '../../data/mockData'
+import { gatewayUtilisationByTeam } from '../../data/mockData'
 import { useThemeTokens } from '../../theme/useThemeTokens'
 import { signalColor, type ChartProps, type SignalLevel } from '../chartOptions'
 import { BarBase } from './BarBase'
 
-/** A dedicated server past 85% has no headroom left for its team. */
+/** A team's dedicated gateway past 85% has no headroom left. */
 function usageLevel(percent: number): SignalLevel {
   if (percent >= 85) return 'bad'
   if (percent >= 65) return 'warning'
@@ -14,7 +14,8 @@ function usageLevel(percent: number): SignalLevel {
 export function BarHorizontalPercent({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const tokens = useThemeTokens()
-  const { slices, unit } = dedicatedServerUsage(global.density)
+  const { slices, unit } = gatewayUtilisationByTeam(global.density)
+  const peak = Math.max(...slices.map((row) => row.value))
 
   return (
     <BarBase
@@ -33,7 +34,10 @@ export function BarHorizontalPercent({ cardIndex, size = 'card' }: ChartProps) {
       stepSize={25}
       horizontal
       thicknessScale={0.8}
+      gatewayIcons
       edgeLabelColors={slices.map((row) => signalColor(usageLevel(row.value), tokens))}
+      spotlightValue={peak}
+      spotlightLabel="highest team utilisation"
     />
   )
 }

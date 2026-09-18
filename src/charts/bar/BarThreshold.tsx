@@ -10,6 +10,7 @@ export function BarThreshold({ cardIndex, size = 'card' }: ChartProps) {
   const tokens = useThemeTokens()
   const set = gatewayLoad(global.density)
   const values = set.series[0].values
+  const peak = Math.max(...values)
 
   return (
     <BarBase
@@ -29,6 +30,8 @@ export function BarThreshold({ cardIndex, size = 'card' }: ChartProps) {
       axisMax={set.axisMax}
       stepSize={set.stepSize}
       threshold={bar.threshold}
+      spotlightValue={peak}
+      spotlightLabel="peak gateway load"
     />
   )
 }

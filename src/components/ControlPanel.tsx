@@ -37,6 +37,8 @@ export interface GlobalControls {
   legend: LegendSlot
   density: Density
   replayToken: number
+  /** Shows a large headline number above the plot on every variant that supplies one. */
+  spotlight: boolean
 }
 
 export interface DonutSettings {
@@ -82,6 +84,7 @@ const INITIAL_GLOBAL: GlobalControls = {
   legend: 'right',
   density: 30,
   replayToken: 0,
+  spotlight: false,
 }
 
 const INITIAL_DONUT: DonutSettings = {
@@ -347,6 +350,9 @@ function GlobalSection() {
           onChange={(v) => setGlobal('density', v)}
           options={DENSITIES.map((d) => ({ label: `${d}d`, value: d }))}
         />
+      </Row>
+      <Row label="Spotlight number">
+        <Segmented value={global.spotlight} onChange={(v) => setGlobal('spotlight', v)} options={ON_OFF} />
       </Row>
       <button
         type="button"

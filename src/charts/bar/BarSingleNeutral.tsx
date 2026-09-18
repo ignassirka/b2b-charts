@@ -8,6 +8,7 @@ export function BarSingleNeutral({ cardIndex, size = 'card' }: ChartProps) {
   const { global } = useControls()
   const tokens = useThemeTokens()
   const set = failedAuthAttempts(global.density)
+  const total = set.series[0].values.reduce((sum, v) => sum + v, 0)
 
   return (
     <BarBase
@@ -25,6 +26,8 @@ export function BarSingleNeutral({ cardIndex, size = 'card' }: ChartProps) {
       unit={set.unit}
       axisMax={set.axisMax}
       stepSize={set.stepSize}
+      spotlightValue={total}
+      spotlightLabel="failed attempts this window"
     />
   )
 }
